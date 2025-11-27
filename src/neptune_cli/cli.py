@@ -6,7 +6,9 @@ from loguru import logger as log
 
 
 from neptune_cli.client import Client
+from neptune_cli.config import SETTINGS
 from neptune_cli.mcp import mcp as mcp_server
+from neptune_cli.auth import serve_callback_handler
 
 
 @click.group()
@@ -110,13 +112,30 @@ def logs():
 
 
 @cli.command()
-@click.option("--username", "-u", help="Username for login")
-def login(username: str | None):
-    """Authenticate with Shuttle
-
-    Currently not implemented.
+def login():
+    """Authenticate with Neptune
     """
-    raise NotImplementedError("login command is not implemented yet")
+    port, httpd, thread = serve_callback_handler()
+    
+    import webbrowser
+
+    from urllib.parse import urlencode
+    params = urlencode({"redirect_uri": f"http://localhost:{port}/callback"})
+    
+    login_url = f"{SETTINGS.api_base_url}/auth/login?{params}"
+    if not webbrowser.open(login_url):
+        print("Please open the following URL in a browser to log in:")
+        print()
+        print(f"    {login_url}")
+        print()
+
+    thread.join()
+
+    if httpd.access_token is not None:
+        SETTINGS.access_token = httpd.access_token
+        SETTINGS.save_to_file()
+
+    print(httpd.callback_received and "Login successful!" or "Login failed.")
 
 
 if __name__ == "__main__":
