@@ -18,15 +18,15 @@ mcp = FastMCP("Neptune (neptune.dev) MCP")
 def add_new_resource(kind: str) -> dict[str, Any]:
     """Get information about resource types that can be provisioned on Shuttle.
 
-    IMPORTANT: Always use this tool before modifying 'shuttle.json'. This is to ensure your modification is correct.
+    IMPORTANT: Always use this tool before modifying 'neptune.json'. This is to ensure your modification is correct.
 
     Valid 'kind' are: "StorageBucket", "Database" and "Secret".
     """
     if kind == "Database":
         return {
             "description": "Managed database instances for your applications.",
-            "shuttle_json_configuration": """
-To add a database to a project, add the following to 'resources' in 'shuttle.json':
+            "neptune_json_configuration": """
+To add a database to a project, add the following to 'resources' in 'neptune.json':
 ```json
 {
     "kind": "Database",
@@ -41,8 +41,8 @@ See resource description returned from `get_deployment_status` after provisionin
     elif kind == "StorageBucket":
         return {
             "description": "Backend is a plain AWS S3 bucket.",
-            "shuttle_json_configuration": """
-To add a bucket to a project, add the following to 'resources' in 'shuttle.json':
+            "neptune_json_configuration": """
+To add a bucket to a project, add the following to 'resources' in 'neptune.json':
 ```json
 {
     "kind": "StorageBucket",
@@ -77,8 +77,8 @@ client.put_object(Bucket="<aws_id>", Key="path/to/object", Body=b"data")
     elif kind == "Secret":
         return {
             "description": "Managed secret storage for your applications.",
-            "shuttle_json_configuration": """
-To add a secret to a project, add the following to 'resources' in 'shuttle.json':
+            "neptune_json_configuration": """
+To add a secret to a project, add the following to 'resources' in 'neptune.json':
 ```json
 {
     "kind": "Secret",
@@ -106,19 +106,19 @@ secret = response['SecretString']
 def provision_resources() -> dict[str, Any]:
     """Provision necessary cloud resources for the current project as per its configuration
 
-    If the working directory does not contain a 'shuttle.json' file, an error message is returned.
+    If the working directory does not contain a 'neptune.json' file, an error message is returned.
     """
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
     project_request = PutProjectRequest.model_validate_json(project_data)
@@ -182,14 +182,14 @@ def deploy_project() -> dict[str, Any]:
     """
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
 
@@ -257,18 +257,18 @@ def get_deployment_status() -> dict[str, Any]:
     """
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -298,23 +298,23 @@ async def set_secret_value(ctx: Context, secret_name: str) -> dict[str, Any]:
 
     This will elicit a prompt to securely enter the secret value.
 
-    Note the secret must already exist in the shuttle.json configuration of the project.
+    Note the secret must already exist in the neptune.json configuration of the project.
     It must also be provisioned using 'provision_resources' before setting its value.
     """
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -343,7 +343,7 @@ async def set_secret_value(ctx: Context, secret_name: str) -> dict[str, Any]:
         return {
             "status": "error",
             "message": f"Secret resource '{secret_name}' not found in project '{project_name}'",
-            "next_step": "ensure the secret is defined in 'shuttle.json' and provisioned with 'provision_resources'",
+            "next_step": "ensure the secret is defined in 'neptune.json' and provisioned with 'provision_resources'",
         }
 
     result = await ctx.elicit(
@@ -378,23 +378,23 @@ async def set_secret_value(ctx: Context, secret_name: str) -> dict[str, Any]:
 def get_database_connection_info(database_name: str) -> dict[str, Any]:
     """Get the connection information for a database resource for the current project.
 
-    Note the database must already exist in the shuttle.json configuration of the project.
+    Note the database must already exist in the neptune.json configuration of the project.
     It must also be provisioned using 'provision_resources' before retrieving its connection info.
     """
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -423,7 +423,7 @@ def get_database_connection_info(database_name: str) -> dict[str, Any]:
         return {
             "status": "error",
             "message": f"Database resource '{database_name}' not found in project '{project_name}'",
-            "next_step": "ensure the database is defined in 'shuttle.json' and provisioned with 'provision_resources'",
+            "next_step": "ensure the database is defined in 'neptune.json' and provisioned with 'provision_resources'",
         }
 
     conn_info = client.get_database_connection_info(project_name, database_name)
@@ -438,23 +438,23 @@ def get_database_connection_info(database_name: str) -> dict[str, Any]:
 def list_bucket_files(bucket_name: str) -> dict[str, Any]:
     """List all files in a storage bucket resource for the current project.
 
-    Note the bucket must already exist in the shuttle.json configuration of the project.
+    Note the bucket must already exist in the neptune.json configuration of the project.
     It must also be provisioned using 'provision_resources' before listing its files.
     """
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -483,7 +483,7 @@ def list_bucket_files(bucket_name: str) -> dict[str, Any]:
         return {
             "status": "error",
             "message": f"Storage bucket resource '{bucket_name}' not found in project '{project_name}'",
-            "next_step": "ensure the storage bucket is defined in 'shuttle.json' and provisioned with 'provision_resources'",
+            "next_step": "ensure the storage bucket is defined in 'neptune.json' and provisioned with 'provision_resources'",
         }
 
     keys = client.list_bucket_keys(project_name, bucket_name)
@@ -499,23 +499,23 @@ def list_bucket_files(bucket_name: str) -> dict[str, Any]:
 def get_bucket_object(bucket_name: str, key: str) -> bytes:
     """Retrieve an object from a storage bucket resource for the current project.
 
-    Note the bucket must already exist in the shuttle.json configuration of the project.
+    Note the bucket must already exist in the neptune.json configuration of the project.
     It must also be provisioned using 'provision_resources' before retrieving its objects.
     """
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -544,7 +544,7 @@ def get_bucket_object(bucket_name: str, key: str) -> bytes:
         return {
             "status": "error",
             "message": f"Storage bucket resource '{bucket_name}' not found in project '{project_name}'",
-            "next_step": "ensure the storage bucket is defined in 'shuttle.json' and provisioned with 'provision_resources'",
+            "next_step": "ensure the storage bucket is defined in 'neptune.json' and provisioned with 'provision_resources'",
         }
 
     object_data = client.get_bucket_object(project_name, bucket_name, key)
@@ -557,18 +557,18 @@ def wait_for_deployment() -> dict[str, Any]:
     """Wait for the current project deployment to complete."""
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -613,17 +613,17 @@ def get_logs() -> dict[str, Any]:
     """Retrieve the logs for the current project deployment."""
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return {
             "status": "error",
-            "message": "shuttle.json not found in the current directory",
-            "next_step": "make sure a 'shuttle.json' file exists in the current directory",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
         }
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name

@@ -78,14 +78,14 @@ def status():
 
     client = Client()
 
-    if not os.path.exists("shuttle.json"):
-        log.error("shuttle.json not found in the current directory")
+    if not os.path.exists("neptune.json"):
+        log.error("neptune.json not found in the current directory")
         return
 
-    with open("shuttle.json", "r") as f:
+    with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from shuttle_aws_platform.models.api import PutProjectRequest
+    from neptune_aws_platform.models.api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
 
