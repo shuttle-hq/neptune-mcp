@@ -130,12 +130,6 @@ def provision_resources() -> dict[str, Any]:
         log.info(f"Updating project '{project_request.name}'...")
         client.update_project(project_request)
 
-    # sleep 5
-    import time
-    import random
-
-    time.sleep(random.randrange(8, 19) / 10)
-
     # while loop to retrieve project status, wait until ready
     project = client.get_project(project_request.name)
     while project.provisioning_state != "Ready":
@@ -184,7 +178,11 @@ def deploy_project() -> dict[str, Any]:
 
     if not os.path.exists("neptune.json"):
         log.error("neptune.json not found in the current directory")
-        return
+        return {
+            "status": "error",
+            "message": "neptune.json not found in the current directory",
+            "next_step": "make sure a 'neptune.json' file exists in the current directory",
+        }
 
     with open("neptune.json", "r") as f:
         project_data = f.read()
@@ -496,7 +494,7 @@ def list_bucket_files(bucket_name: str) -> dict[str, Any]:
 
 
 @mcp.tool("get_bucket_object")
-def get_bucket_object(bucket_name: str, key: str) -> bytes:
+def get_bucket_object(bucket_name: str, key: str) -> dict[str, str] | bytes:
     """Retrieve an object from a storage bucket resource for the current project.
 
     Note the bucket must already exist in the neptune.json configuration of the project.
