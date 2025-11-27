@@ -189,7 +189,7 @@ def deploy_project() -> dict[str, Any]:
     with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
 
@@ -268,7 +268,7 @@ def get_deployment_status() -> dict[str, Any]:
     with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -314,7 +314,7 @@ async def set_secret_value(ctx: Context, secret_name: str) -> dict[str, Any]:
     with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -394,7 +394,7 @@ def get_database_connection_info(database_name: str) -> dict[str, Any]:
     with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -454,7 +454,7 @@ def list_bucket_files(bucket_name: str) -> dict[str, Any]:
     with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -515,7 +515,7 @@ def get_bucket_object(bucket_name: str, key: str) -> bytes:
     with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -568,7 +568,7 @@ def wait_for_deployment() -> dict[str, Any]:
     with open("neptune.json", "r") as f:
         project_data = f.read()
 
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
@@ -623,7 +623,7 @@ def get_logs() -> dict[str, Any]:
 
     with open("neptune.json", "r") as f:
         project_data = f.read()
-    from neptune_aws_platform.models.api import PutProjectRequest
+    from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
     project_name = project_request.name
