@@ -51,9 +51,15 @@ def fix():
 
 
 @ai.command()
-def mcp():
+@click.option("--transport", "-t", help="Transport to use for MCP", default="stdio")
+@click.option("--host", "-h", help="Host to use for MCP for HTTP transport", default="0.0.0.0")
+@click.option("--port", "-p", help="Port to use for MCP for HTTP transport", default=8001)
+def mcp(transport: str | None, host: str | None, port: int | None):
     """Start an MCP session for the current project"""
-    mcp_server.run()
+    if transport == "stdio":
+        mcp_server.run()
+    elif transport == "http":
+        mcp_server.run(transport=transport, host=host, port=port)
 
 
 @cli.command()
