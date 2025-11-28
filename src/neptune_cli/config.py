@@ -2,7 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from platformdirs import user_config_dir
 
-from pathlib import Path
+from pathlib import Path,PosixPath
+import json
 
 
 class CLISettings(BaseSettings):
@@ -17,6 +18,15 @@ class CLISettings(BaseSettings):
             env_prefix="NEPTUNE_",
             json_file=Path(user_config_dir("neptune")) / "config.json",
         )
+
+    json_file: PosixPath | None = Config.model_config.get("json_file")
+    def _read_access_token(json_file: str):
+        with open(json_file, "r") as f:
+            data = json.load(f)
+            return data.get("access_token")
+
+    if json_file and json_file.exists():
+        access_token = _read_access_token(json_file)
 
     def save_to_file(self) -> None:
         """Save the current settings to the configuration file."""
