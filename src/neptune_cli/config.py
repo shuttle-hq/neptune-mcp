@@ -4,12 +4,14 @@ from platformdirs import user_config_dir
 
 from pathlib import Path,PosixPath
 import json
+import os
 
 
 class CLISettings(BaseSettings):
     """Configuration settings for the Neptune CLI."""
 
-    api_base_url: str = "http://localhost:8000/v1"
+    # Local development: use `NEPTUNE_API_BASE_URL=http://localhost:8000/v1`
+    api_base_url: str = os.environ.get("NETPUNE_API_BASE_URL", "https://neptune.shuttle.dev/v1")
     
     access_token: str | None = None
 
