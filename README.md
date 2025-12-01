@@ -56,3 +56,15 @@ By default, the server will be available on http://0.0.0.0:8001/mcp, and the MCP
 ```
 
 [uv]: https://docs.astral.sh/uv/
+
+
+## Run the MCP in the MCP Inspector
+
+
+In order to test the different tools the MCP provides, we can use the MCP Inspector:
+
+```
+npx @modelcontextprotocol/inspector uv run neptune mcp
+```
+
+This will open a browser window with the inspector loaded. Press `Connect` (ignore the header errors), click the `Tools` tab in the UI, and list the tools.
