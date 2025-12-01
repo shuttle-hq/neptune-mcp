@@ -28,6 +28,7 @@ neptune-api = { path = "./neptune-api" }
 
 [dependency-groups]
 dev = [
+    "isort",
     "ruff>=0.14.6",
 ]
 
@@ -37,3 +38,29 @@ neptune = "neptune_cli.cli:cli"
 [tool.ruff]
 target-version = "py313" # Align with the project requirements
 line-length = 120  # Align with .editorconfig
+
+[tool.isort]
+profile = "black"
+atomic = true
+py_version = 313
+verbose = false
+remove_redundant_aliases = true
+ensure_newline_before_comments = true
+color_output = true
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 2
+use_parentheses = true
+line_length = 120
+combine_as_imports = true
+honor_noqa = true
+skip_gitignore = true
+default_section = "THIRDPARTY"
+known_first_party = ["neptune_cli"]
+import_heading_future = "Future Imports"
+import_heading_stdlib = "Standard Library Imports"
+import_heading_thirdparty = "Third-Party Imports"
+import_heading_firstparty = "Package-Level Imports"
+import_heading_localfolder = "Imports From Package Sub-Modules"
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+src_paths = ["src/neptune_cli"]
