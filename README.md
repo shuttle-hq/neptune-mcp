@@ -13,7 +13,6 @@ Make sure you are also running the `neptune-aws-platform` locally (by default th
 ```
 git clone https://github.com/shuttle-hq/neptune-cli-python.git
 cd neptune-cli-python
-git checkout CLI-porting
 git submodule update --init --recursive
 
 # Install the CLI
