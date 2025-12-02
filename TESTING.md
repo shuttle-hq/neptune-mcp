@@ -20,6 +20,10 @@ Welcome to Neptune alpha testing! This guide covers three ways to interact with 
 ## Installation
 
 ```bash
+cargo uninstall neptune
+```
+
+```bash
 # Clone the repository
 git clone https://github.com/shuttle-hq/neptune-cli-python.git
 cd neptune-cli-python
