@@ -21,8 +21,9 @@ Welcome to Neptune alpha testing! This guide covers three ways to interact with 
 
 ```bash
 # Clone the repository
-git clone <repo-url>
+git clone https://github.com/shuttle-hq/neptune-cli-python.git
 cd neptune-cli-python
+git checkout CLI-porting
 
 # Install the CLI
 uv tool install -e .
