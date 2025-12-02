@@ -14,6 +14,15 @@ from neptune_api.models import PutProjectRequest
 mcp = FastMCP("Neptune (neptune.dev) MCP")
 
 
+def validate_neptune_json(neptune_json_path: str) -> dict[str, Any]:
+    if not os.path.exists(neptune_json_path):
+        log.error(f"neptune.json not found at {neptune_json_path}")
+        return {
+            "status": "error",
+            "message": f"neptune.json not found at {neptune_json_path}",
+            "next_step": f"make sure a 'neptune.json' file exists at {neptune_json_path}",
+        }
+
 @mcp.tool("add_new_resource")
 def add_new_resource(kind: str) -> dict[str, Any]:
     """Get information about resource types that can be provisioned on Neptune.
@@ -103,22 +112,17 @@ secret = response['SecretString']
 
 
 @mcp.tool("provision_resources")
-def provision_resources() -> dict[str, Any]:
+def provision_resources(neptune_json_path: str) -> dict[str, Any]:
     """Provision necessary cloud resources for the current project as per its configuration
 
     If the working directory does not contain a 'neptune.json' file, an error message is returned.
     """
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     project_request = PutProjectRequest.model_validate_json(project_data)
@@ -165,7 +169,7 @@ def provision_resources() -> dict[str, Any]:
 
 
 @mcp.tool("deploy_project")
-def deploy_project() -> dict[str, Any]:
+def deploy_project(neptune_json_path: str) -> dict[str, Any]:
     """Deploy the current project.
 
     This only works after the project has been provisioned using 'provision_resources'.
@@ -176,15 +180,12 @@ def deploy_project() -> dict[str, Any]:
     """
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    project_dir = os.path.dirname(os.path.abspath(neptune_json_path))
+
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     from neptune_api import PutProjectRequest
@@ -224,6 +225,7 @@ def deploy_project() -> dict[str, Any]:
             stdin= subprocess.PIPE,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
+            cwd=project_dir,
         )
         login_process.communicate(input=push_token.encode())
         if login_process.returncode != 0:
@@ -249,14 +251,14 @@ def deploy_project() -> dict[str, Any]:
         ".",
     ]
     subprocess.run(
-        build_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+        build_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=project_dir
     )
     log.info(f"Image built successfully")
 
     log.info(f"Pushing image for revision {deployment.revision}...")
     push_cmd = ["docker", "push", deployment.image]
     subprocess.run(
-        push_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+        push_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=project_dir
     )
 
     # while deployment.status is not "Deployed", poll every 2 seconds
@@ -276,22 +278,18 @@ def deploy_project() -> dict[str, Any]:
 
 
 @mcp.tool("get_deployment_status")
-def get_deployment_status() -> dict[str, Any]:
+def get_deployment_status(neptune_json_path: str) -> dict[str, Any]:
     """Get the status of the current deployment of a project and its provisioned resources.
 
     This will tell you about running resources the project is using, as well as the state of the service.
     """
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     from neptune_api import PutProjectRequest
@@ -319,7 +317,7 @@ def get_deployment_status() -> dict[str, Any]:
 
 
 @mcp.tool("set_secret_value")
-async def set_secret_value(ctx: Context, secret_name: str) -> dict[str, Any]:
+async def set_secret_value(ctx: Context, neptune_json_path: str, secret_name: str) -> dict[str, Any]:
     """Set the value of a secret resource for the current project.
 
     This will elicit a prompt to securely enter the secret value.
@@ -329,15 +327,10 @@ async def set_secret_value(ctx: Context, secret_name: str) -> dict[str, Any]:
     """
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     from neptune_api import PutProjectRequest
@@ -401,7 +394,7 @@ async def set_secret_value(ctx: Context, secret_name: str) -> dict[str, Any]:
 
 
 @mcp.tool("get_database_connection_info")
-def get_database_connection_info(database_name: str) -> dict[str, Any]:
+def get_database_connection_info(neptune_json_path: str, database_name: str) -> dict[str, Any]:
     """Get the connection information for a database resource for the current project.
 
     Note the database must already exist in the neptune.json configuration of the project.
@@ -409,15 +402,10 @@ def get_database_connection_info(database_name: str) -> dict[str, Any]:
     """
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     from neptune_api import PutProjectRequest
@@ -461,7 +449,7 @@ def get_database_connection_info(database_name: str) -> dict[str, Any]:
 
 
 @mcp.tool("list_bucket_files")
-def list_bucket_files(bucket_name: str) -> dict[str, Any]:
+def list_bucket_files(neptune_json_path: str, bucket_name: str) -> dict[str, Any]:
     """List all files in a storage bucket resource for the current project.
 
     Note the bucket must already exist in the neptune.json configuration of the project.
@@ -469,15 +457,10 @@ def list_bucket_files(bucket_name: str) -> dict[str, Any]:
     """
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     from neptune_api import PutProjectRequest
@@ -522,7 +505,7 @@ def list_bucket_files(bucket_name: str) -> dict[str, Any]:
 
 
 @mcp.tool("get_bucket_object")
-def get_bucket_object(bucket_name: str, key: str) -> dict[str, str] | bytes:
+def get_bucket_object(neptune_json_path: str, bucket_name: str, key: str) -> dict[str, str] | bytes:
     """Retrieve an object from a storage bucket resource for the current project.
 
     Note the bucket must already exist in the neptune.json configuration of the project.
@@ -530,15 +513,10 @@ def get_bucket_object(bucket_name: str, key: str) -> dict[str, str] | bytes:
     """
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     from neptune_api import PutProjectRequest
@@ -579,19 +557,14 @@ def get_bucket_object(bucket_name: str, key: str) -> dict[str, str] | bytes:
 
 
 @mcp.tool("wait_for_deployment")
-def wait_for_deployment() -> dict[str, Any]:
+def wait_for_deployment(neptune_json_path: str) -> dict[str, Any]:
     """Wait for the current project deployment to complete."""
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
 
     from neptune_api import PutProjectRequest
@@ -635,20 +608,16 @@ def wait_for_deployment() -> dict[str, Any]:
 
 
 @mcp.tool("get_logs")
-def get_logs() -> dict[str, Any]:
+def get_logs(neptune_json_path: str) -> dict[str, Any]:
     """Retrieve the logs for the current project deployment."""
     client = Client()
 
-    if not os.path.exists("neptune.json"):
-        log.error("neptune.json not found in the current directory")
-        return {
-            "status": "error",
-            "message": "neptune.json not found in the current directory",
-            "next_step": "make sure a 'neptune.json' file exists in the current directory",
-        }
+    if validation_result := validate_neptune_json(neptune_json_path):
+        return validation_result
 
-    with open("neptune.json", "r") as f:
+    with open(neptune_json_path, "r") as f:
         project_data = f.read()
+
     from neptune_api import PutProjectRequest
 
     project_request = PutProjectRequest.model_validate_json(project_data)
