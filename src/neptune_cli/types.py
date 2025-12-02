@@ -207,7 +207,7 @@ class Template(BaseModel):
 TEMPLATES: list[Template] = [
     Template(
         name="Python FastAPI",
-        url="https://github.com/shuttle-hq/neptune-examples",
-        description="A FastAPI backend template",
+        url="https://github.com/fastapi/full-stack-fastapi-template",
+        description="Full stack FastAPI template with React, PostgreSQL, Docker",
     ),
 ]

@@ -10,7 +10,6 @@ from neptune_cli.types import OutputMode, DeployResult as DeployResultType
 from neptune_cli.ui import (
     NeptuneUI,
     confirm,
-    print_lint_report,
     spinner,
 )
 
@@ -23,26 +22,6 @@ from neptune_cli.ui import (
     help="Output format",
 )
 @click.option(
-    "--skip-spec",
-    is_flag=True,
-    help="Skip spec generation and reuse existing neptune.json",
-)
-@click.option(
-    "--skip-lint",
-    is_flag=True,
-    help="Skip AI lint before deploying",
-)
-@click.option(
-    "--allow-ai-errors",
-    is_flag=True,
-    help="Ignore blocking AI lint errors",
-)
-@click.option(
-    "--allow-ai-warnings",
-    is_flag=True,
-    help="Ignore blocking AI lint warnings",
-)
-@click.option(
     "--yes",
     "-y",
     is_flag=True,
@@ -52,34 +31,23 @@ from neptune_cli.ui import (
 def deploy_command(
     ctx: click.Context,
     output: str | None,
-    skip_spec: bool,
-    skip_lint: bool,
-    allow_ai_errors: bool,
-    allow_ai_warnings: bool,
     yes: bool,
 ) -> None:
     """Build and deploy the current project.
 
     This command will:
-    1. Check for required Dockerfile
-    2. Generate/update neptune.json (spec)
-    3. Run AI lint validation
-    4. Build a Docker image
-    5. Push to Neptune's registry
-    6. Create a deployment
+    1. Check for required Dockerfile and neptune.json
+    2. Build a Docker image
+    3. Push to Neptune's registry
+    4. Create a deployment
 
-    Note: A Dockerfile is required. If one doesn't exist, the command will
-    provide guidance on creating one. AI agents can use the AGENTS.md
-    instructions or MCP tools to generate an appropriate Dockerfile.
+    Note: A Dockerfile and neptune.json are required. If they don't exist,
+    the command will provide guidance on creating them.
     """
     from neptune_cli.services.deploy import (
         run_preflight_checks,
-        generate_or_load_spec,
-        assess_lint_results,
         provision_resources,
         build_and_push_image,
-        NeptuneJsonNotFoundError,
-        SpecGenerationError,
         ProvisioningError,
         DockerBuildError,
         DockerPushError,
@@ -188,83 +156,29 @@ def deploy_command(
 
     ui.success("✅ Docker is installed and running")
 
-    # ==========================================================================
-    # Step 2: Generate or Load Spec
-    # ==========================================================================
-    ui.header("Configuration")
-
-    client = get_client()
-
-    try:
-        with spinner("Processing project configuration...", output_mode):
-            spec_result = generate_or_load_spec(
-                working_dir,
-                project_name,
-                skip_generation=skip_spec,
-                skip_lint=skip_lint,
-                client=client,
-            )
-    except NeptuneJsonNotFoundError:
-        message = "Cannot skip spec generation because neptune.json does not exist"
+    # Check neptune.json exists
+    neptune_json = working_dir / "neptune.json"
+    if not neptune_json.exists():
+        message = "neptune.json not found in project directory"
         if json_out:
-            json_out.messages = [message, "Run `neptune generate spec` first"]
-            json_out.next_action_command = "neptune generate spec"
+            json_out.messages = [
+                message,
+                "Create a neptune.json configuration file before deploying.",
+            ]
+            json_out.next_action_command = "Create neptune.json, then run: neptune deploy"
             ui.print_json(json_out.model_dump(mode="json"))
             return
         else:
             ui.error(message)
-            ctx.exit(1)
-    except SpecGenerationError as e:
-        if json_out:
-            json_out.messages = [str(e)]
-            json_out.next_action_command = "neptune deploy"
-            ui.print_json(json_out.model_dump(mode="json"))
-            return
-        else:
-            ui.error(str(e))
+            ui.info("Create a neptune.json configuration file before deploying.")
             ctx.exit(1)
 
-    if spec_result.generated:
-        ui.success("✅ Generated neptune.json")
-    else:
-        ui.success("✅ Using existing neptune.json")
+    ui.success("✅ neptune.json found")
 
-    if skip_lint and output_mode != OutputMode.JSON:
-        ui.step("", "Skipping AI lint (--skip-lint)")
+    client = get_client()
 
     # ==========================================================================
-    # Step 3: Check Lint Results
-    # ==========================================================================
-    if spec_result.ai_lint_report:
-        if json_out:
-            json_out.ai_lint_report = spec_result.ai_lint_report
-        else:
-            print_lint_report(ui, spec_result.ai_lint_report, output_mode)
-
-        assessment = assess_lint_results(
-            spec_result.ai_lint_report,
-            allow_errors=allow_ai_errors,
-            allow_warnings=allow_ai_warnings,
-        )
-
-        if assessment.blocking:
-            if json_out:
-                json_out.messages = [
-                    *assessment.reasons,
-                    "Deployment aborted due to AI lint findings.",
-                ]
-                json_out.next_action_command = "Fix issues, then run: neptune deploy"
-                ui.print_json(json_out.model_dump(mode="json"))
-                return
-            else:
-                for reason in assessment.reasons:
-                    ui.warn(f"Blocking: {reason}")
-                ui.info("Use --allow-ai-errors / --allow-ai-warnings to override.")
-                ui.info("Deployment aborted; resolve findings or override to continue.")
-                ctx.exit(1)
-
-    # ==========================================================================
-    # Step 4: Confirmation
+    # Step 2: Confirmation
     # ==========================================================================
     if not yes and output_mode != OutputMode.JSON:
         if not confirm("Proceed with build and deployment?"):
@@ -272,7 +186,7 @@ def deploy_command(
             return
 
     # ==========================================================================
-    # Step 5: Provision Infrastructure
+    # Step 3: Provision Infrastructure
     # ==========================================================================
     ui.header("Infrastructure")
 
@@ -295,7 +209,7 @@ def deploy_command(
     ui.success("✅ Infrastructure ready")
 
     # ==========================================================================
-    # Step 6: Create Deployment and Build/Push
+    # Step 4: Create Deployment and Build/Push
     # ==========================================================================
     ui.header("Build")
 
@@ -357,7 +271,7 @@ def deploy_command(
     ui.success("✅ Image built and pushed successfully")
 
     # ==========================================================================
-    # Step 7: Wait for Deployment
+    # Step 5: Wait for Deployment
     # ==========================================================================
     ui.header("Deploy")
     ui.step("🚀", f"Deployment created (revision {deployment.revision})")

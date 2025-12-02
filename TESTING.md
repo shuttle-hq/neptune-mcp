@@ -70,13 +70,16 @@ cd my-project
 # 3. Initialize
 neptune init
 
-# 4. Deploy
+# 4. Generate neptune.json
+neptune generate spec
+
+# 5. Deploy
 neptune deploy
 
-# 5. Check status
+# 6. Check status
 neptune status
 
-# 6. View logs
+# 7. View logs
 neptune logs
 ```
 
@@ -89,8 +92,6 @@ neptune logs
 | `neptune logout`                       | Log out of Neptune                           |
 | `neptune init`                         | Initialize a new project (creates AGENTS.md) |
 | `neptune deploy`                       | Build and deploy the current project         |
-| `neptune deploy --skip-spec`           | Deploy without regenerating spec             |
-| `neptune deploy --skip-lint`           | Deploy without AI lint check                 |
 | `neptune deploy -y`                    | Deploy without confirmation prompts          |
 | `neptune status`                       | Show current deployment status               |
 | `neptune logs`                         | View deployment logs                         |
@@ -162,11 +163,17 @@ neptune login
 # Initialize project
 neptune init
 
+# Generate neptune.json configuration
+neptune generate spec
+
 # Review generated neptune.json
 cat neptune.json
 
 # Check Dockerfile guidance (if no Dockerfile exists)
 neptune dockerfile
+
+# Optionally run AI lint to check for issues
+neptune lint
 
 # Create Dockerfile based on guidance, then deploy
 neptune deploy -y
@@ -323,10 +330,11 @@ The AI assistant will typically follow this workflow:
 2. **Resources** → `add_new_resource` to learn about resource types
 3. **Create Config** → Create neptune.json file
 4. **Dockerfile** → `get_dockerfile_guidance` if no Dockerfile exists
-5. **Provision** → `provision_resources` to create infrastructure
-6. **Secrets** → `set_secret_value` for any secrets
-7. **Deploy** → `deploy_project` to build and deploy
-8. **Monitor** → `get_deployment_status`, `get_logs` to monitor
+5. **Lint** → `run_ai_lint` to check for configuration issues (optional)
+6. **Provision** → `provision_resources` to create infrastructure
+7. **Secrets** → `set_secret_value` for any secrets
+8. **Deploy** → `deploy_project` to build and deploy
+9. **Monitor** → `get_deployment_status`, `get_logs` to monitor
 
 ---
 
@@ -367,7 +375,7 @@ Please test the following scenarios and report any issues:
 1. Create a project with intentional issues
 2. Run `neptune lint` or MCP `run_ai_lint`
 3. Verify lint catches configuration problems
-4. Test deployment blocking behavior
+4. Fix issues and re-run lint to confirm they are resolved
 
 ## Multiple Projects
 
