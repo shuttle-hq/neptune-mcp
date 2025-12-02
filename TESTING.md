@@ -39,6 +39,9 @@ neptune --version
 To reinstall after updates:
 
 ```bash
+cd neptune-cli-python
+git checkout CLI-porting
+git pull
 uv tool install -e . --force --reinstall
 ```
 
