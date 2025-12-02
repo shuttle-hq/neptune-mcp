@@ -247,7 +247,7 @@ async def deploy_project(ctx: Context) -> dict[str, Any]:
             "deployment_status": result.status,
             "deployment_revision": result.revision,
             "url": result.url,
-            "next_step": "the deployment was sent to Neptune's backend, and is now propagating. Investigate the deployment status with 'get_deployment_status'",
+            "next_step": "IMPORTANT: Use 'get_deployment_status' to verify the service is running. If status is not 'Running', immediately use 'get_logs' to diagnose the issue. Common problems include: app not listening on port 8080, missing dependencies, or configuration errors.",
         }
     except DockerfileNotFoundError as e:
         log.error("Dockerfile not found")
@@ -353,12 +353,24 @@ async def get_deployment_status(ctx: Context) -> dict[str, Any]:
 
     try:
         status = get_project_status(project_name)
+        running = status.running_status.get("current", "Unknown") if status.running_status else "Unknown"
+
+        # Determine next steps based on service status
+        if running == "Running":
+            next_steps = "Service is healthy and running. The deployment was successful."
+        elif running in ["Stopped", "Error"]:
+            next_steps = f"SERVICE UNHEALTHY: Status is '{running}'. IMMEDIATELY use 'get_logs' to fetch the application logs and diagnose the issue. Common causes: application crash, missing dependencies, port binding issues (must listen on 8080), missing environment variables."
+        elif running in ["Pending", "Starting"]:
+            next_steps = f"Service is '{running}'. Wait a moment and check status again. If it stays in this state, use 'get_logs' to check for startup issues."
+        else:
+            next_steps = f"Service status is '{running}'. Use 'get_logs' to check for any issues."
+
         return {
             "infrastructure_provisioning_status": status.provisioning_state,
             "service_running_status": status.running_status,
             "infrastructure_resources": status.resources,
             "url": status.url,
-            "next_steps": "use this information to monitor the deployment status; if there are issues, check the logs and redeploy as necessary",
+            "next_steps": next_steps,
         }
     except ProjectNotFoundError:
         log.error(f"Project '{project_name}' not found")
@@ -461,12 +473,19 @@ async def wait_for_deployment(ctx: Context) -> dict[str, Any]:
 
     try:
         status = do_wait(project_name)
+        running = status.running_status.get("current", "Unknown") if status.running_status else "Unknown"
+
+        if running == "Running":
+            next_steps = "Deployment successful! Service is healthy and running."
+        else:
+            next_steps = f"Deployment completed but service status is '{running}'. Use 'get_logs' to check for issues."
+
         return {
             "infrastructure_provisioning_status": status.provisioning_state,
             "service_running_status": status.running_status,
             "infrastructure_resources": status.resources,
             "url": status.url,
-            "next_steps": "use this information to monitor the deployment status; if there are issues, check the logs and redeploy as necessary",
+            "next_steps": next_steps,
         }
     except ProjectNotFoundError:
         log.error(f"Project '{project_name}' not found")
@@ -481,7 +500,7 @@ async def wait_for_deployment(ctx: Context) -> dict[str, Any]:
             "status": "error",
             "message": str(e),
             "state": e.state,
-            "next_step": "check the logs with 'get_logs' and try deploying again",
+            "next_step": "SERVICE FAILED: Use 'get_logs' IMMEDIATELY to diagnose the issue. Common causes: application crash on startup, missing dependencies, port binding issues (must listen on 8080), missing environment variables or secrets.",
         }
     except Exception as e:
         log.error(f"Failed while waiting for deployment: {e}")
@@ -748,7 +767,23 @@ async def get_logs(ctx: Context) -> dict[str, Any]:
         logs_result = do_get_logs(project_name)
         return {
             "logs": logs_result.logs,
-            "next_step": "use these logs to debug your application or monitor its behavior; fix any issues and redeploy as necessary",
+            "troubleshooting_guide": {
+                "common_issues": [
+                    "ModuleNotFoundError/ImportError: Missing dependency - add to requirements.txt and rebuild",
+                    "Connection refused on database: Check DATABASE_URL env var and that database is provisioned",
+                    "Address already in use: Another process using port 8080, or app started multiple times",
+                    "ECONNREFUSED: External service connection failed - check network config or secrets",
+                    "Permission denied: File system access issue - check Dockerfile permissions",
+                    "No such file or directory: Missing file in container - check COPY commands in Dockerfile",
+                ],
+                "what_to_look_for": [
+                    "Stack traces or error messages near the end of logs",
+                    "Any 'Error', 'Exception', 'Failed', or 'FATAL' messages",
+                    "Application startup messages - did it start listening on a port?",
+                    "Health check failures",
+                ],
+            },
+            "next_step": "Analyze the logs for errors. If you find issues: 1) Fix the code or configuration, 2) Use 'deploy_project' to redeploy, 3) Check status again with 'get_deployment_status'",
         }
     except Exception as e:
         log.error(f"Failed to get logs: {e}")
