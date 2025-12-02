@@ -603,6 +603,7 @@ def build_and_push_image(
     image_tag: str,
     push_token: str | None = None,
     on_status: Callable[[str], None] | None = None,
+    on_log: Callable[[str], None] | None = None,
 ) -> None:
     """Build and push Docker image.
 
@@ -611,6 +612,7 @@ def build_and_push_image(
         image_tag: Full image tag to build and push
         push_token: Optional registry authentication token
         on_status: Optional callback for status updates
+        on_log: Optional callback for build log lines
 
     Raises:
         DockerLoginError: If registry login fails
@@ -621,6 +623,10 @@ def build_and_push_image(
     def status(msg: str):
         if on_status:
             on_status(msg)
+
+    def log(line: str):
+        if on_log:
+            on_log(line)
 
     # Docker login if we have a token
     if push_token:
@@ -655,18 +661,29 @@ def build_and_push_image(
     ]
 
     try:
-        subprocess.run(
+        # Stream build output in real-time
+        process = subprocess.Popen(
             build_cmd,
             cwd=working_dir,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            check=True,
         )
-    except subprocess.CalledProcessError as e:
-        raise DockerBuildError(
-            "Docker build failed",
-            output=e.stderr[-2000:] if e.stderr else None,
-        ) from e
+
+        output_lines = []
+        if process.stdout:
+            for line in process.stdout:
+                line = line.rstrip()
+                output_lines.append(line)
+                log(line)
+
+        process.wait()
+
+        if process.returncode != 0:
+            raise DockerBuildError(
+                "Docker build failed",
+                output="\n".join(output_lines[-50:]) if output_lines else None,
+            )
     except FileNotFoundError:
         raise DockerNotAvailableError("Docker is not installed or not in PATH")
 
@@ -676,12 +693,30 @@ def build_and_push_image(
     push_cmd = ["docker", "push", image_tag]
 
     try:
-        subprocess.run(push_cmd, capture_output=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        raise DockerPushError(
-            "Docker push failed",
-            output=e.stderr[-2000:] if e.stderr else None,
-        ) from e
+        # Stream push output in real-time
+        process = subprocess.Popen(
+            push_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+
+        output_lines = []
+        if process.stdout:
+            for line in process.stdout:
+                line = line.rstrip()
+                output_lines.append(line)
+                log(line)
+
+        process.wait()
+
+        if process.returncode != 0:
+            raise DockerPushError(
+                "Docker push failed",
+                output="\n".join(output_lines[-50:]) if output_lines else None,
+            )
+    except FileNotFoundError:
+        raise DockerNotAvailableError("Docker is not installed or not in PATH")
 
 
 def deploy_project(

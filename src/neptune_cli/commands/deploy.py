@@ -233,6 +233,7 @@ def deploy_command(
             deployment.image,
             push_token=deployment.push_token,
             on_status=lambda msg: ui.step("", msg) if output_mode != OutputMode.JSON else None,
+            on_log=lambda line: click.echo(f"    {line}") if output_mode != OutputMode.JSON else None,
         )
     except DockerLoginError as e:
         if json_out:
