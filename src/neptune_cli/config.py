@@ -26,7 +26,7 @@ if _global_env.exists():
 load_dotenv(find_dotenv(usecwd=True))
 
 # Default API URLs
-DEFAULT_API_URL = "https://neptune.shuttle.dev/v1"
+DEFAULT_API_URL = "https://beta.neptune.dev/v1"
 DEFAULT_AI_URL = "https://tooling-demo.impulse.shuttle.dev"
 
 # Config directory name
