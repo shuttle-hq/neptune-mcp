@@ -373,7 +373,16 @@ def deploy_project(neptune_json_path: str) -> dict[str, Any]:
     subprocess.run(push_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=project_dir)
 
     # while deployment.status is not "Deployed", poll every 2 seconds
+    start_time = time.time()
+    timeout = 120  # 2 minutes
     while deployment.status != "Deployed":
+        if time.time() - start_time > timeout:
+            log.error(f"Deployment timed out after {timeout} seconds")
+            return {
+                "status": "error",
+                "message": f"deployment timed out after {timeout} seconds while waiting for status 'Deployed'",
+                "next_step": "check the deployment status with 'get_deployment_status' and investigate any issues",
+            }
         time.sleep(2)
         deployment = client.get_deployment(project_request.name, revision=deployment.revision)
 
