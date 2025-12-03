@@ -616,10 +616,7 @@ dependencies = [
 requires-dist = [{ name = "pydantic", specifier = ">=2.12.5" }]
 
 [package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=9.0.1" },
-    { name = "ruff", specifier = ">=0.14.6" },
-]
+dev = [{ name = "ruff", specifier = ">=0.14.6" }]
 
 [[package]]
 name = "openapi-pydantic"
