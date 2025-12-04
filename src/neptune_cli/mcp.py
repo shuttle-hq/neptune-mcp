@@ -8,6 +8,7 @@ from loguru import logger as log
 from neptune_common import PutProjectRequest
 
 from neptune_cli.client import Client
+from neptune_cli.utils import run_command
 
 
 def _load_instructions() -> str:
@@ -374,12 +375,27 @@ def deploy_project(neptune_json_path: str) -> dict[str, Any]:
         "Dockerfile",
         ".",
     ]
-    subprocess.run(build_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=project_dir)
+    build_res = run_command(build_cmd, cwd=project_dir)
+    if not build_res.success:
+        log.error(f"Image build failed: {build_res.stderr}")
+        return {
+            "status": "error",
+            "message": f"image build failed: {build_res.stderr}",
+            "next_step": "check the Dockerfile and build context, then try again",
+        }
+
     log.info("Image built successfully")
 
     log.info(f"Pushing image for revision {deployment.revision}...")
     push_cmd = ["docker", "push", deployment.image]
-    subprocess.run(push_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, cwd=project_dir)
+    push_res = run_command(push_cmd, cwd=project_dir)
+    if not push_res.success:
+        log.error(f"Image push failed: {push_res.stderr}")
+        return {
+            "status": "error",
+            "message": f"image push failed: {push_res.stderr}",
+            "next_step": "check your Docker registry credentials and network connection, then try again",
+        }
 
     # while deployment.status is not "Deployed", poll every 2 seconds
     start_time = time.time()
