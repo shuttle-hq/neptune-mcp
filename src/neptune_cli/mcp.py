@@ -705,7 +705,7 @@ async def info() -> dict[str, Any]:
                 "get_project_schema": tools_by_name.get("get_project_schema", "Get the JSON schema for neptune.json"),
             },
             "configuration": {
-                "add_new_resource": tools_by_name.get("add_new_resource", "Get info about resource types (StorageBucket, Secret)"),
+                "add_new_resource": tools_by_name.get("add_new_resource", "Get info about resource types (StorageBucket, Secret, etc.) and how to configure these resources in neptune.json"),
             },
             "deployment": {
                 "provision_resources": tools_by_name.get("provision_resources", "Provision cloud infrastructure"),
