@@ -688,7 +688,7 @@ async def info() -> dict[str, Any]:
     if not check_docker_installed():
         return {
             "status": "error",
-            "message": "Docker is not installed or running.",
+            "message": "Docker is not installed or running. Neptune requires Docker to be installed for building images for your apps.",
             "next_step": "Install Docker and make sure it is running before using Neptune.",
         }
 
