@@ -5,10 +5,23 @@ Increments patch version by default, or minor/major with flags.
 """
 
 import argparse
+import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+def find_uv():
+    """Find uv executable path."""
+    uv_path = shutil.which("uv")
+    if uv_path:
+        return uv_path
+    fallback = os.path.expanduser("~/.local/bin/uv")
+    if os.path.isfile(fallback) and os.access(fallback, os.X_OK):
+        return fallback
+    return "uv"
 
 
 def run_command(cmd, check=True, capture_output=True):
@@ -189,7 +202,8 @@ def main():
 
     # Update uv lock file
     print("Updating uv.lock...")
-    result = run_command('uv lock', check=False)
+    uv_cmd = find_uv()
+    result = run_command(f'{uv_cmd} lock', check=False)
     if result.returncode != 0:
         print(f"Error updating uv.lock: {result.stderr}", file=sys.stderr)
         sys.exit(1)
