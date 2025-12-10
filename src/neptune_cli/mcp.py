@@ -8,7 +8,9 @@ from loguru import logger as log
 from neptune_common import PutProjectRequest
 
 from neptune_cli.client import Client
+from neptune_cli.upgrade import perform_upgrade
 from neptune_cli.utils import run_command
+from neptune_cli.version import check_for_update, get_current_version, is_running_as_binary
 
 
 def _load_instructions() -> str:
@@ -681,6 +683,87 @@ def get_logs(neptune_json_path: str) -> dict[str, Any]:
         "next_step": "use these logs to debug your application or monitor its behavior; fix any issues and redeploy as necessary",
     }
 
+@mcp.tool("upgrade_cli")
+def upgrade_cli(check_only: bool = False) -> dict[str, Any]:
+    """Check for and install updates to Neptune CLI.
+
+    Args:
+        check_only: If True, only check for updates without installing
+
+    Returns:
+        Status and version information including current version, latest version,
+        and whether an update was performed.
+    """
+    try:
+        current = get_current_version()
+        update_info = check_for_update()
+
+        if update_info is None:
+            return {
+                "status": "error",
+                "message": "Failed to check for updates. Please check your network connection.",
+                "current_version": current,
+                "next_step": "Try again later or check your network connection",
+            }
+
+        if not update_info.update_available:
+            return {
+                "status": "success",
+                "message": f"Neptune CLI is up to date (version {current})",
+                "current_version": current,
+                "latest_version": update_info.latest_version,
+                "update_available": False,
+                "next_step": "No action needed - you're running the latest version",
+            }
+
+        # Update is available
+        if check_only:
+            return {
+                "status": "success",
+                "message": f"Update available: {current} → {update_info.latest_version}",
+                "current_version": current,
+                "latest_version": update_info.latest_version,
+                "update_available": True,
+                "next_step": "Run upgrade_cli with check_only=False to install the update",
+            }
+
+        # Perform the upgrade
+        if not is_running_as_binary():
+            return {
+                "status": "error",
+                "message": "Cannot upgrade: Neptune CLI is not running as a compiled binary",
+                "current_version": current,
+                "latest_version": update_info.latest_version,
+                "update_available": True,
+                "next_step": "Upgrade manually using pip or your package manager",
+            }
+
+        if perform_upgrade(update_info, silent=False):
+            return {
+                "status": "success",
+                "message": f"Successfully upgraded Neptune CLI from {current} to {update_info.latest_version}",
+                "previous_version": current,
+                "new_version": update_info.latest_version,
+                "next_step": "Tell the user to manually restart the Neptune MCP server from their MCP client/IDE. In Cursor, this is done via going to settings then toggling the MCP server off and on again.",
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Upgrade failed",
+                "current_version": current,
+                "latest_version": update_info.latest_version,
+                "next_step": "Check permissions and try again. On Unix, you may need sudo. On Windows, run as Administrator.",
+            }
+
+    except Exception as e:
+        log.error(f"Upgrade check failed: {e}")
+        return {
+            "status": "error",
+            "message": f"Upgrade failed: {e}",
+            "next_step": "Try again later or check the logs for more details",
+        }
+
+
 @mcp.tool("info")
 async def info() -> dict[str, Any]:
     """Get information about Neptune and available tools for cloud deployment management."""
@@ -698,6 +781,7 @@ async def info() -> dict[str, Any]:
     return {
         "status": "success",
         "platform": "Neptune (neptune.dev)",
+        "version": get_current_version(),
         "description": "Neptune is a cloud deployment platform that simplifies deploying and managing containerized applications with provisioned cloud resources.",
         "available_tools": {
             "setup": {
@@ -721,6 +805,9 @@ async def info() -> dict[str, Any]:
             },
             "monitoring": {
                 "get_logs": tools_by_name.get("get_logs", "Retrieve deployment logs"),
+            },
+            "maintenance": {
+                "upgrade_cli": tools_by_name.get("upgrade_cli", "Check for and install Neptune CLI updates"),
             },
         },
         "typical_workflow": [

@@ -6,17 +6,13 @@ from loguru import logger as log
 from neptune_cli.auth import serve_callback_handler
 from neptune_cli.config import SETTINGS
 from neptune_cli.mcp import mcp as mcp_server
-from neptune_cli.upgrade import auto_check_and_upgrade
 from neptune_cli.version import check_for_update, get_current_version, is_running_as_binary
 
 
 @click.group()
-@click.pass_context
-def cli(ctx: click.Context):
+def cli():
     """AI-native cloud platform for your backend"""
-    # Skip auto-update for upgrade command itself to avoid double-checking
-    if ctx.invoked_subcommand != "upgrade":
-        auto_check_and_upgrade()
+    pass
 
 
 @cli.command()
@@ -68,7 +64,7 @@ def version():
 @click.option("--check", is_flag=True, help="Check for updates without installing")
 def upgrade(check: bool):
     """Check for and install updates to Neptune CLI"""
-    from neptune_cli.upgrade import perform_upgrade, update_last_check_timestamp
+    from neptune_cli.upgrade import perform_upgrade
 
     current = get_current_version()
     print(f"Current version: {current}")
@@ -82,7 +78,6 @@ def upgrade(check: bool):
 
     if not update_info.update_available:
         print("You are running the latest version")
-        update_last_check_timestamp()
         return
 
     print(f"New version available: {update_info.latest_version}")

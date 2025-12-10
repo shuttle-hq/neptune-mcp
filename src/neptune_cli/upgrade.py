@@ -4,38 +4,14 @@ import platform
 import stat
 import sys
 import tempfile
-import time
 
 from loguru import logger as log
 import requests
 
-from neptune_cli.config import SETTINGS
 from neptune_cli.version import (
     UpdateInfo,
-    check_for_update,
     is_running_as_binary,
 )
-
-
-CHECK_INTERVAL = 86400  # 24 hours in seconds
-
-
-def should_check_for_updates() -> bool:
-    """Check if enough time has passed since last update check."""
-    if SETTINGS.skip_update_check:
-        return False
-
-    if SETTINGS.last_update_check is None:
-        return True
-
-    elapsed = time.time() - SETTINGS.last_update_check
-    return elapsed >= CHECK_INTERVAL
-
-
-def update_last_check_timestamp() -> None:
-    """Update the last update check timestamp in settings."""
-    SETTINGS.last_update_check = time.time()
-    SETTINGS.save_to_file()
 
 
 def get_current_executable() -> Path:
@@ -109,7 +85,6 @@ def perform_upgrade(update_info: UpdateInfo, silent: bool = False) -> bool:
             success = _perform_unix_upgrade(current_exe, tmp_path, silent)
 
         if success:
-            update_last_check_timestamp()
             if not silent:
                 print(f"Successfully upgraded to {update_info.latest_version}")
 
@@ -193,32 +168,3 @@ del "%~f0"
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-
-
-def auto_check_and_upgrade() -> None:
-    """Perform automatic update check and upgrade if available.
-
-    This runs silently and never interrupts the CLI.
-    """
-    if not should_check_for_updates():
-        return
-
-    if not is_running_as_binary():
-        update_last_check_timestamp()
-        return
-
-    try:
-        update_info = check_for_update()
-
-        if update_info is None:
-            update_last_check_timestamp()
-            return
-
-        if not update_info.update_available:
-            update_last_check_timestamp()
-            return
-
-        perform_upgrade(update_info, silent=True)
-
-    except Exception:
-        pass
