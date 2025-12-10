@@ -249,7 +249,7 @@ def provision_resources(neptune_json_path: str) -> dict[str, Any]:
     return {
         "infrastructure_status": "ready",
         "message": "all the resources required by the project have been provisioned, and it is ready for deployment",
-        "next_step": "deploy the project using the 'deploy_project' command; note how each resource should be used by inspecting their descriptions in this response",
+        "next_step": "review the infrastructure_resources in case there's a task to do before deploying the project using the 'deploy_project' command; note how each resource should be used by inspecting their descriptions in this response",
         "infrastructure_resources": [resource.model_dump() for resource in project.resources],
     }
 
@@ -681,6 +681,7 @@ def get_logs(neptune_json_path: str) -> dict[str, Any]:
         "next_step": "use these logs to debug your application or monitor its behavior; fix any issues and redeploy as necessary",
     }
 
+
 @mcp.tool("info")
 async def info() -> dict[str, Any]:
     """Get information about Neptune and available tools for cloud deployment management."""
@@ -705,13 +706,18 @@ async def info() -> dict[str, Any]:
                 "get_project_schema": tools_by_name.get("get_project_schema", "Get the JSON schema for neptune.json"),
             },
             "configuration": {
-                "add_new_resource": tools_by_name.get("add_new_resource", "Get info about resource types (StorageBucket, Secret, etc.) and how to configure these resources in neptune.json"),
+                "add_new_resource": tools_by_name.get(
+                    "add_new_resource",
+                    "Get info about resource types (StorageBucket, Secret, etc.) and how to configure these resources in neptune.json",
+                ),
             },
             "deployment": {
                 "provision_resources": tools_by_name.get("provision_resources", "Provision cloud infrastructure"),
                 "deploy_project": tools_by_name.get("deploy_project", "Build and deploy the application"),
                 "wait_for_deployment": tools_by_name.get("wait_for_deployment", "Wait for deployment to complete"),
-                "get_deployment_status": tools_by_name.get("get_deployment_status", "Check deployment and resource status"),
+                "get_deployment_status": tools_by_name.get(
+                    "get_deployment_status", "Check deployment and resource status"
+                ),
                 "delete_project": tools_by_name.get("delete_project", "Delete project and all resources"),
             },
             "resources": {
@@ -743,6 +749,7 @@ async def info() -> dict[str, Any]:
         "next_step": "Use 'login' to authenticate with Neptune, then 'get_project_schema' to understand how to configure your project.",
     }
 
+
 async def list_tools() -> list[dict[str, Any]]:
     """Function to return all tools provided by this MCP."""
     tools = await mcp.get_tools()
@@ -754,15 +761,17 @@ async def list_tools() -> list[dict[str, Any]]:
         for tool in tools.values()
     ]
 
+
 def check_docker_installed() -> bool:
     """Check if docker is installed and running."""
     import subprocess
+
     try:
         result = subprocess.Popen(["docker", "info"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         result.communicate()
         if result.returncode != 0:
             return False
-        return True    
+        return True
     except Exception as e:
         log.error(f"Failed to check if docker is installed and running: {e}")
         return False
