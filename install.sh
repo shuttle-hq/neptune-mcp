@@ -4,6 +4,7 @@ set -e
 REPO="dcodesdev/neptune-cli-python"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 BINARY_NAME="neptune"
+MAX_RETRIES=5
 
 # Detect OS and architecture
 OS="$(uname -s)"
@@ -46,9 +47,22 @@ LATEST_URL="https://github.com/${REPO}/releases/latest/download/${ASSET_NAME}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-# Download binary
-curl -fsSL "$LATEST_URL" -o "$TMP_DIR/$BINARY_NAME"
-chmod +x "$TMP_DIR/$BINARY_NAME"
+# Download binary with retry mechanism
+RETRY_COUNT=0
+while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+    if curl -fsSL "$LATEST_URL" -o "$TMP_DIR/$BINARY_NAME"; then
+        chmod +x "$TMP_DIR/$BINARY_NAME"
+        break
+    else
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        if [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; then
+            sleep 2
+        else
+            echo "Download failed after $MAX_RETRIES attempts"
+            exit 1
+        fi
+    fi
+done
 
 # Ensure install dir exists
 mkdir -p "$INSTALL_DIR"
