@@ -48,3 +48,35 @@ For example, for Cursor, you can go to Cursor Settings -> Tools & MCP -> New MCP
 ## Deploy Your App
 
 That's it! Now just tell your agent to deploy your app for you, and Neptune will handle the rest.
+
+## Local Development
+
+To test local changes to the MCP server, update your MCP config to point to your local repo:
+
+```json
+{
+    "mcpServers": {
+        "neptune": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                "run",
+                "--directory",
+                "/path/to/neptune-mcp",
+                "neptune",
+                "mcp"
+            ]
+        }
+    }
+}
+```
+
+Replace `/path/to/neptune-mcp` with the absolute path to your local clone.
+
+After updating the config, restart Cursor (or reload the MCP server) for changes to take effect.
+
+You can also verify the MCP server starts correctly from the terminal:
+
+```shell
+uv run neptune mcp
+```
