@@ -1,4 +1,4 @@
-# neptune-cli-python
+# neptune-mcp
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ For example, for Cursor, you can go to Cursor Settings -> Tools & MCP -> New MCP
             "args": [
                 "--isolated",
                 "--from",
-                "git+https://github.com/shuttle-hq/neptune-cli-python.git",
+                "git+https://github.com/shuttle-hq/neptune-mcp.git",
                 "neptune",
                 "mcp"
             ]
@@ -58,7 +58,7 @@ To test local changes to the MCP server, update your MCP config to point to your
             "args": [
                 "run",
                 "--directory",
-                "/path/to/neptune-cli-python",
+                "/path/to/neptune-mcp",
                 "neptune",
                 "mcp"
             ]
@@ -67,7 +67,7 @@ To test local changes to the MCP server, update your MCP config to point to your
 }
 ```
 
-Replace `/path/to/neptune-cli-python` with the absolute path to your local clone.
+Replace `/path/to/neptune-mcp` with the absolute path to your local clone.
 
 After updating the config, restart Cursor (or reload the MCP server) for changes to take effect.
 
@@ -75,6 +75,12 @@ You can also verify the MCP server starts correctly from the terminal:
 
 ```shell
 uv run neptune mcp
+```
+
+Or if you want to run it in the MCP Inspector, execute the following command:
+
+```shell
+npx @modelcontextprotocol/inspector uv run neptune mcp
 ```
 
 [uv]: https://docs.astral.sh/uv/

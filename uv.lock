@@ -556,7 +556,7 @@ wheels = [
 ]
 
 [[package]]
-name = "neptune-cli"
+name = "neptune-mcp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

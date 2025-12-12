@@ -5,11 +5,10 @@ from typing import Any
 
 from fastmcp import Context, FastMCP
 from loguru import logger as log
-from neptune_common import PutProjectRequest
-
 from neptune_cli.client import Client
 from neptune_cli.config import SETTINGS
 from neptune_cli.utils import run_command
+from neptune_common import PutProjectRequest
 
 
 def _load_instructions() -> str:
