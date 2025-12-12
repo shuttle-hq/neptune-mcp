@@ -13,7 +13,7 @@ hiddenimports = []
 # Packages that need full collection due to dynamic imports
 packages_to_collect = [
     # Core
-    'neptune_cli',
+    'neptune_mcp',
     'pydantic',
     'pydantic_settings',
     'pydantic_core',
@@ -67,7 +67,7 @@ for package in packages_to_collect:
         pass
 
 # Add the mcp_instructions.md data file
-datas += [('src/neptune_cli/mcp_instructions.md', 'neptune_cli')]
+datas += [('src/neptune_mcp/mcp_instructions.md', 'neptune_mcp')]
 
 # Ensure diskcache submodules are collected
 hiddenimports += collect_submodules('diskcache')
@@ -105,7 +105,7 @@ hiddenimports += [
 ]
 
 a = Analysis(
-    ['src/neptune_cli/cli.py'],
+    ['src/neptune_mcp/cli.py'],
     pathex=['src'],
     binaries=binaries,
     datas=datas,
