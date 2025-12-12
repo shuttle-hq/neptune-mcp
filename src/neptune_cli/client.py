@@ -5,6 +5,7 @@ from neptune_common import (
     GetLogsResponse,
     GetProjectResponse,
     ListBucketKeysResponse,
+    ListProjectsResponse,
     PostDeploymentResponse,
     PutProjectRequest,
 )
@@ -105,3 +106,8 @@ class Client:
         )
         response.raise_for_status()
         return response.json()
+
+    def list_projects(self) -> ListProjectsResponse:
+        response = requests.get(self._mk_url("/project"), headers=self._get_headers())
+        response.raise_for_status()
+        return ListProjectsResponse.model_validate(response.json())

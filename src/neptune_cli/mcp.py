@@ -761,6 +761,18 @@ async def info() -> dict[str, Any]:
     }
 
 
+@mcp.tool("list_projects")
+def list_projects() -> dict[str, Any]:
+    """List all projects in the current account."""
+    client = Client()
+    response = client.list_projects()
+    project_names = [project.name for project in response.projects]
+    return {
+        "projects": project_names,
+        "next_step": f"Use 'get_deployment_status' to get the status of a project and 'get_logs' to monitor its logs. Remember you have used {len(project_names)} out of 4 projects in your account.",
+    }
+
+
 async def list_tools() -> list[dict[str, Any]]:
     """Function to return all tools provided by this MCP."""
     tools = await mcp.get_tools()
