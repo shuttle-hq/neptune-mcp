@@ -32,7 +32,7 @@ irm https://neptune.dev/install.ps1 | iex
 
 ## Getting Started
 
-For example, for Cursor, you can go to Cursor Settings -> Tools & MCP -> New MCP Server:
+For Cursor, go to Cursor Settings -> Tools & MCP -> New MCP Server:
 
 ```json
 {
