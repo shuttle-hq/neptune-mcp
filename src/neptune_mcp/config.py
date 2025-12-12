@@ -19,7 +19,7 @@ class CLISettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="NEPTUNE_",
-        json_file=Path(user_config_dir("neptune")) / "config.json"
+        json_file=Path(user_config_dir("neptune")) / "config.json",
     )
 
     @classmethod
