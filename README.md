@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="./assets/neptune-new.gif" width="600" alt="Neptune flow" /> 
+  <img src="./assets/neptune.gif" width="600" alt="Neptune flow" /> 
 </p>
 
 ## What is Neptune?
