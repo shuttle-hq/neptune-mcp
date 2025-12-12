@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 import time
@@ -72,7 +73,7 @@ def get_project_schema() -> dict[str, Any]:
 
 
 @mcp.tool("login")
-def login() -> dict[str, Any]:
+async def login() -> dict[str, Any]:
     """Authenticate with Neptune.
 
     Opens a browser window for OAuth login. After successful authentication,
@@ -102,9 +103,7 @@ def login() -> dict[str, Any]:
             "next_step": "Please open the URL above in your browser to complete login, then call this tool again.",
         }
 
-    # Wait for callback
-    while not future.done():
-        time.sleep(0.5)
+    await future
 
     if httpd.access_token is not None:
         SETTINGS.access_token = httpd.access_token
