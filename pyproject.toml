@@ -1,7 +1,7 @@
 [project]
-name = "neptune-cli"
+name = "neptune-mcp"
 version = "0.1.29"
-description = "CLI for Neptune (neptune.dev)"
+description = "MCP server for Neptune (neptune.dev)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -20,19 +20,16 @@ requires = ["uv_build>=0.9.13,<0.10.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
-dev = [
-    "ruff>=0.14.6",
-    "pyinstaller>=6.0",
-]
+dev = ["ruff>=0.14.6", "pyinstaller>=6.0"]
 
 [project.scripts]
-neptune = "neptune_cli.cli:cli"
+neptune = "neptune_mcp.cli:cli"
 
 [tool.ruff]
 line-length = 120
 target-version = "py313"
 respect-gitignore = true
-src = ["src/neptune_cli"]
+src = ["src/neptune_mcp"]
 
 [tool.ruff.format]
 line-ending = "lf"
@@ -59,8 +56,6 @@ section-order = [
     "standard-library",
     "third-party",
     "first-party",
-    "local-folder"
+    "local-folder",
 ]
-known-first-party = [
-    "neptune_cli",
-]
+known-first-party = ["neptune_mcp"]

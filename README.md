@@ -1,4 +1,4 @@
-# neptune-cli-python
+# neptune-mcp
 
 ## Installation
 
@@ -42,7 +42,7 @@ To test local changes to the MCP server, update your MCP config to point to your
             "args": [
                 "run",
                 "--directory",
-                "/path/to/neptune-cli-python",
+                "/path/to/neptune-mcp",
                 "neptune",
                 "mcp"
             ]
@@ -51,7 +51,7 @@ To test local changes to the MCP server, update your MCP config to point to your
 }
 ```
 
-Replace `/path/to/neptune-cli-python` with the absolute path to your local clone.
+Replace `/path/to/neptune-mcp` with the absolute path to your local clone.
 
 After updating the config, restart Cursor (or reload the MCP server) for changes to take effect.
 

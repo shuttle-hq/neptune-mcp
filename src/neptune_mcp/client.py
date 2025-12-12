@@ -11,8 +11,8 @@ from neptune_common import (
 )
 import requests
 
-from neptune_cli.config import SETTINGS
-from neptune_cli.version import get_current_version
+from neptune_mcp.version import get_current_version
+from neptune_mcp.config import SETTINGS
 
 
 @dataclass
