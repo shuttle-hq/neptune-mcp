@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="assets/neptune.svg" alt="Neptune Logo" width="200"/>
+  <img src="./assets/neptune.svg" alt="Neptune Logo" width="200"/>
 </p>
 
 <p align="center">
-  <video src="assets/neptune.mov" width="600" controls>
+  <video src="./assets/neptune.mov" width="600" controls>
     Your browser does not support the video tag.
   </video>
 </p>
