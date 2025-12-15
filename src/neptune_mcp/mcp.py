@@ -422,7 +422,7 @@ async def deploy_project(neptune_json_path: str) -> dict[str, Any]:
     # while deployment.status is not "Deployed", poll every 2 seconds
     start_time = time.time()
     timeout = 180  # 3 minutes
-    while deployment.status != "Deployed":
+    while deployment.status != "Deployed" and deployment.status != "Error":
         if time.time() - start_time > timeout:
             log.error(f"Deployment timed out after {timeout} seconds")
             return {
@@ -432,6 +432,15 @@ async def deploy_project(neptune_json_path: str) -> dict[str, Any]:
             }
         await asyncio.sleep(2)
         deployment = await client.get_deployment_async(project_request.name, revision=deployment.revision)
+
+    if deployment.status != "Deployed":
+        log.error(f"Deployment failed with status: {deployment.status}")
+        return {
+            "status": "error",
+            "message": f"deployment failed with status: {deployment.status}",
+            "error_from_neptune": deployment.error,
+            "next_step": "check the project status with 'get_deployment_status' and investigate any issues",
+        }
 
     log.info(f"Revision {deployment.revision} deployed successfully")
 
