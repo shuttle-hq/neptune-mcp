@@ -102,6 +102,8 @@ hiddenimports += [
     'chardet',
     'socks',
     'sockshandler',
+    # loguru Windows dependency
+    'win32_setctime',
 ]
 
 a = Analysis(
