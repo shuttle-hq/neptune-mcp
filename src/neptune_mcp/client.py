@@ -8,6 +8,7 @@ from neptune_common import (
     ListProjectsResponse,
     PostDeploymentResponse,
     PutProjectRequest,
+    QueryDatabaseRequest,
 )
 import requests
 import httpx
@@ -127,3 +128,12 @@ class Client:
         response = requests.get(self._mk_url("/project"), headers=self._get_headers())
         response.raise_for_status()
         return ListProjectsResponse.model_validate(response.json())
+
+    def query_database(self, project_name: str, database_name: str, request: QueryDatabaseRequest) -> dict[str, Any]:
+        response = requests.post(
+            self._mk_url(f"/project/{project_name}/database/{database_name}/query"),
+            json=request.model_dump(mode="json"),
+            headers=self._get_headers(),
+        )
+        response.raise_for_status()
+        return response.json()

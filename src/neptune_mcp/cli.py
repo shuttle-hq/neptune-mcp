@@ -5,10 +5,12 @@ from neptune_mcp.config import SETTINGS
 from neptune_mcp.mcp import mcp as mcp_server
 
 
-@click.group()
-def cli():
-    """AI-native cloud platform for your backend"""
-    pass
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    """Start a Neptune MCP server (stdio) for the current project"""
+    if ctx.invoked_subcommand is None:
+        mcp_server.run()
 
 
 @cli.command()
