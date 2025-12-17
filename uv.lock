@@ -579,7 +579,7 @@ wheels = [
 [[package]]
 name = "neptune-common"
 version = "0.1.0"
-source = { git = "https://github.com/shuttle-hq/neptune-common.git?rev=main#3faad694bd6974aafff418ea9e02aee66751f338" }
+source = { git = "https://github.com/shuttle-hq/neptune-common.git?rev=main#1fb0e52a5c9e992aafa94e6097396eab614461bd" }
 dependencies = [
     { name = "pydantic" },
 ]
