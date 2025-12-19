@@ -28,11 +28,14 @@ This document explains the complete release workflow for Neptune MCP, including 
 
 ### Step 1: Bump the Version
 
-**Important**: Create a new branch before running the bump script to avoid pushing directly to main:
+**Important**: Create a new branch and set upstream before running the bump script to avoid pushing directly to main:
 
 ```bash
 # Create a new branch for the version bump
 git checkout -b chore/bump-v0.1.3
+
+# Push the branch to remote and set upstream
+git push -u origin chore/bump-v0.1.3
 ```
 
 **Dry Run First** (Recommended):
@@ -200,6 +203,7 @@ For a complete release:
 -   [ ] Ensure working directory is clean
 -   [ ] Pull latest changes from main branch
 -   [ ] Create a new branch (e.g., `git checkout -b chore/bump-v0.1.3`)
+-   [ ] Push branch to remote and set upstream (e.g., `git push -u origin chore/bump-v0.1.3`)
 -   [ ] Run dry run first: `python scripts/bump_version.py --dry-run`
 -   [ ] Verify the dry run output looks correct
 -   [ ] Run `python scripts/bump_version.py` (or `--minor`/`--major`)
