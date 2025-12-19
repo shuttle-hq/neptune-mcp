@@ -18,7 +18,9 @@ This document explains the complete release workflow for Neptune MCP, including 
         -   [Version File Locations](#version-file-locations)
     -   [PyInstaller Build Process](#pyinstaller-build-process)
         -   [Local Build](#local-build)
+        -   [Keeping neptune.spec in Sync with Dependencies](#keeping-neptunespec-in-sync-with-dependencies)
         -   [Testing the Binary](#testing-the-binary)
+        -   [Manual MCP Tool Testing](#manual-mcp-tool-testing)
     -   [Post-Release Testing](#post-release-testing)
         -   [What Gets Tested](#what-gets-tested)
         -   [Platforms Tested](#platforms-tested)
@@ -184,6 +186,12 @@ The build script:
 3. Produces a single executable at `dist/neptune`
 4. Verifies the binary works by running `neptune --help`
 
+### Keeping neptune.spec in Sync with Dependencies
+
+PyInstaller uses the same dependencies as its environment, so in the workflow packages are always in sync with [pyproject.toml](../pyproject.toml). The spec file collects dependencies from the installed environment during build. Only update [neptune.spec](../neptune.spec) manually if a package uses dynamic imports or plugins (add to `packages_to_collect`) or if the build fails with import errors (add to `hiddenimports`).
+
+For more information, see [PyInstaller spec files documentation](https://pyinstaller.org/en/stable/spec-files.html).
+
 ### Testing the Binary
 
 After building:
@@ -198,6 +206,10 @@ ls -lh dist/neptune
 # Test MCP server mode
 ./dist/neptune mcp
 ```
+
+### Manual MCP Tool Testing
+
+Python lacks compile-time safety and supports dynamic imports (e.g., conditional imports), so all MCP tools must be manually tested for edge cases. A binary may compile successfully and some tools may work, while others fail due to dependencies with dynamic imports missing from neptune.spec. These errors only surface at runtime.
 
 ## Post-Release Testing
 
