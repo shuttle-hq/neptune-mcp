@@ -6,8 +6,6 @@ This document explains the complete release workflow for Neptune MCP, including 
 
 -   [Neptune MCP Release Process](#neptune-mcp-release-process)
     -   [Table of Contents](#table-of-contents)
-    -   [Overview](#overview)
-    -   [Prerequisites](#prerequisites)
     -   [Release Workflow](#release-workflow)
         -   [Step 1: Bump the Version](#step-1-bump-the-version)
         -   [Step 2: Automatic Build Trigger](#step-2-automatic-build-trigger)
@@ -24,40 +22,7 @@ This document explains the complete release workflow for Neptune MCP, including 
     -   [Post-Release Testing](#post-release-testing)
         -   [What Gets Tested](#what-gets-tested)
         -   [Platforms Tested](#platforms-tested)
-    -   [Troubleshooting](#troubleshooting)
     -   [Summary Checklist](#summary-checklist)
-
-## Overview
-
-The Neptune MCP release process is automated through GitHub Actions and uses the following tools:
-
--   **Version Management**: Python script ([scripts/bump_version.py](../scripts/bump_version.py)) for semantic versioning
--   **Build Tool**: PyInstaller for creating standalone executables
--   **CI/CD**: GitHub Actions for automated builds and releases
--   **Git Tags**: Semantic versioning tags trigger the release pipeline
-
-## Prerequisites
-
-Before creating a release, ensure you have:
-
-1. **Local Development Setup**:
-
-    - Python 3.13+ installed
-    - `uv` package manager installed
-    - Git configured with appropriate credentials
-    - Write access to the repository
-
-2. **Clean Working Directory**:
-
-    ```bash
-    git status  # Should show no uncommitted changes
-    ```
-
-3. **On the Correct Branch**:
-    ```bash
-    git checkout main  # Or your release branch
-    git pull origin main
-    ```
 
 ## Release Workflow
 
@@ -213,7 +178,7 @@ Python lacks compile-time safety and supports dynamic imports (e.g., conditional
 
 ## Post-Release Testing
 
-After a release is published, automated tests run via [.github/workflows/test-releases.yml](../.github/workflows/test-releases.yml).
+After a release is published, automated tests run via [.github/workflows/test-releases.yml](../.github/workflows/test-releases.yml). This is more of an install script test rather than a binary test—it doesn't ensure that all MCP tools work. Dynamic import errors won't be caught here.
 
 ### What Gets Tested
 
@@ -227,8 +192,6 @@ The test workflow validates:
 
 -   **Unix**: ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel
 -   **Windows**: windows-latest
-
-## Troubleshooting
 
 ## Summary Checklist
 
