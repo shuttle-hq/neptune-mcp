@@ -22,6 +22,45 @@ def _load_instructions() -> str:
 
 mcp = FastMCP("Neptune (neptune.dev) MCP", instructions=_load_instructions())
 
+# We wrap tools at registration time so every @mcp.tool(...) call is traced.
+_orig_tool_decorator = mcp.tool
+
+
+def _instrumented_tool(*args: Any, **kwargs: Any):
+    """Wrapper around FastMCP.tool that instruments all tools.
+
+    This must support multiple calling conventions:
+    - @mcp.tool
+    - @mcp.tool()
+    - @mcp.tool("explicit_name")
+    - internal uses like functools.partial(mcp.tool, name="explicit_name")
+    """
+    from neptune_mcp.observability import instrument_tool_fn
+
+    # Case 1: called directly with the function (e.g. @mcp.tool, or via partial(...)(fn))
+    if args and callable(args[0]):
+        fn = args[0]
+        tool_name = kwargs.get("name")
+        if tool_name is None and len(args) >= 2 and isinstance(args[1], str):
+            tool_name = args[1]
+        tool_name = tool_name or getattr(fn, "__name__", "unknown")
+        return _orig_tool_decorator(instrument_tool_fn(tool_name, fn), **kwargs)
+
+    # Case 2: called as decorator factory (e.g. @mcp.tool("name") or @mcp.tool(name="name"))
+    decorator = _orig_tool_decorator(*args, **kwargs)
+
+    def _wrap(fn):
+        tool_name = kwargs.get("name")
+        if tool_name is None and args and isinstance(args[0], str):
+            tool_name = args[0]
+        tool_name = tool_name or getattr(fn, "__name__", "unknown")
+        return decorator(instrument_tool_fn(tool_name, fn))
+
+    return _wrap
+
+
+mcp.tool = _instrumented_tool
+
 
 def validate_neptune_json(neptune_json_path: str) -> dict[str, Any] | None:
     """Validate that neptune.json exists at the given path.
