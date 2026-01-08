@@ -15,6 +15,7 @@ dependencies = [
     "neptune-common @ git+https://github.com/shuttle-hq/neptune-common.git@main",
     "aiofiles>=25.1.0",
     "httpx>=0.28.1",
+    "langtrace-python-sdk",
 ]
 
 [build-system]

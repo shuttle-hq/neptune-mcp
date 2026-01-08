@@ -80,3 +80,10 @@ You can also verify the MCP server starts correctly from the terminal:
 ```shell
 uv run neptune mcp
 ```
+
+## Telemetry / Observability
+
+This project includes **optional OpenTelemetry-based tracing** via Langtrace ([docs](https://docs.langtrace.ai/introduction)).
+
+- **Enable**: set `LANGTRACE_API_KEY` in your environment, or pass `--langtrace-api-key` when starting the MCP.
+- **Disable**: set `NEPTUNE_MCP_DISABLE_TELEMETRY=1` or start with `neptune --disable-telemetry mcp`.
